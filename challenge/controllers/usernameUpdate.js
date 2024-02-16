@@ -10,44 +10,49 @@ export async function handleUserNameUpdation(req, res) {
     console.log(req.body);
   
     if (cookie) {
-      let cookieData = jwt.decode(cookie);
-  
-      if (cookieData.admin) {
-        res.json(`flag:${process.env.FLAG}`);
-      } else {
-        const sqlQuery = `SELECT * FROM Users WHERE id=?`;
-        let valArray = [cookieData.id];
-  
-        try {
-          let result = await query({ values: valArray, query: sqlQuery });
-  
-          if (result.length === 0) {
-            res.json("some error occurred");
-          } else {
-            if (result[0].authcode === req.body.authcode) {
-              console.log("authcode matched");
-              const updateQuery = `UPDATE Users SET username=? WHERE id=?`;
-              const arr = [req.body.newusername, cookieData.id];
-  
-              try {
-                await query({ query: updateQuery, values: arr });
-  
-                // Use setTimeout only if absolutely necessary
-                setTimeout(() => {
-                  res.json(`name updated to ${req.body.newusername}`);
-                }, 1000);
-              } catch (updateError) {
-                console.error("Error updating username:", updateError);
-                res.json("Error updating username");
-              }
+      try {
+        
+        let cookieData = jwt.verify(cookie);
+    
+        if (cookieData.admin) {
+          res.json(`flag:${process.env.FLAG}`);
+        } else {
+          const sqlQuery = `SELECT * FROM Users WHERE id=?`;
+          let valArray = [cookieData.id];
+    
+          try {
+            let result = await query({ values: valArray, query: sqlQuery });
+    
+            if (result.length === 0) {
+              res.json("some error occurred");
             } else {
-              res.json("wrong authcode!!!");
+              if (result[0].authcode === req.body.authcode) {
+                console.log("authcode matched");
+                const updateQuery = `UPDATE Users SET username=? WHERE id=?`;
+                const arr = [req.body.newusername, cookieData.id];
+    
+                try {
+                  await query({ query: updateQuery, values: arr });
+    
+                  // Use setTimeout only if absolutely necessary
+                  setTimeout(() => {
+                    res.json(`name updated to ${req.body.newusername}`);
+                  }, 1000);
+                } catch (updateError) {
+                  console.error("Error updating username:", updateError);
+                  res.json("Error updating username");
+                }
+              } else {
+                res.json("wrong authcode!!!");
+              }
             }
+          } catch (error) {
+            console.error("Error querying database:", error);
+            res.json("Error querying database");
           }
-        } catch (error) {
-          console.error("Error querying database:", error);
-          res.json("Error querying database");
         }
+      } catch (error) {
+        res.json("Dont mess with the cookie")
       }
     } else {
       res.send("user not logged in ");
