@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import { router } from './Router/router.js';
 import path from 'path'
 
+
 import cookieParser from 'cookie-parser'
 dotenv.config();
 const app = express();
@@ -15,7 +16,8 @@ app.set("view engine", "ejs");
 
 
 app.use("/",router)
-
-app.listen(1337,()=>{
-    console.log("server running on:",1337);
+console.log(process.env.PORT)
+const PORT = process.env.PORT | 5000;
+app.listen(PORT,()=>{
+    console.log("server running on:",PORT);
 })
